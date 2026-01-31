@@ -15,6 +15,7 @@ import logging
 import time
 
 from fairhire.core.models import Candidate, AgentExecution, ActivityLog
+from fairhire.core.services import auto_setup_interviews
 from . import parser_agent, guardrail_agent, scorer_agent, summary_agent, bias_auditor_agent
 
 logger = logging.getLogger("fairhire.agents")
@@ -137,6 +138,37 @@ def run_full_pipeline(candidate: Candidate, run_bias_audit: bool = True) -> dict
         if not pipeline_results["errors"]:
             candidate.stage = Candidate.Stage.REVIEWED
         candidate.save(update_fields=["stage"])
+
+        # Auto-shortlist and setup interviews for accepted candidates
+        if not pipeline_results["errors"]:
+            should_shortlist = (
+                candidate.suggested_action == "Accept"
+                and candidate.guardrail_passed is not False
+            )
+            if should_shortlist:
+                candidate.stage = Candidate.Stage.SHORTLISTED
+                # The post_save signal will auto-create interviews
+                candidate.save(update_fields=["stage"])
+                _log_activity(
+                    candidate, "stage_changed",
+                    f"Auto-shortlisted: AI recommended Accept "
+                    f"(score: {candidate.overall_score})",
+                )
+                logger.info(
+                    f"Auto-shortlisting candidate {candidate.id} "
+                    f"(action={candidate.suggested_action}, "
+                    f"score={candidate.overall_score})"
+                )
+                # Signal may have already created interviews; ensure they exist
+                candidate.refresh_from_db()
+                if not candidate.interviews.exists():
+                    auto_setup_interviews(candidate)
+                pipeline_results["auto_shortlisted"] = True
+                pipeline_results["interviews_created"] = candidate.interviews.count()
+            else:
+                pipeline_results["auto_shortlisted"] = False
+
+        candidate.refresh_from_db()
 
         duration = time.time() - start
         pipeline_results["total_duration_seconds"] = round(duration, 2)
