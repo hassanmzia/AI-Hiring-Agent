@@ -7,13 +7,28 @@ import type { JobPosition, Department, PaginatedResponse } from '../types';
 
 const JobsPage: React.FC = () => {
   const { data: jobsData, loading, refetch } = useApi<PaginatedResponse<JobPosition>>(() => getJobs());
-  const { data: deptsData } = useApi<PaginatedResponse<Department>>(() => getDepartments());
+  const { data: deptsData, refetch: refetchDepts } = useApi<PaginatedResponse<Department>>(() => getDepartments());
   const [showForm, setShowForm] = useState(false);
+  const [newDeptName, setNewDeptName] = useState('');
+  const [creatingDept, setCreatingDept] = useState(false);
   const [form, setForm] = useState({
     title: '', department: '', description: '', requirements: '', nice_to_have: '',
     experience_level: 'mid', min_experience_years: 2, max_experience_years: 10,
     location: '', is_remote: false, salary_min: '', salary_max: '', status: 'open',
   });
+
+  const handleCreateDept = async () => {
+    if (!newDeptName.trim()) return;
+    try {
+      const dept = await createDepartment({ name: newDeptName.trim(), description: '' });
+      setNewDeptName('');
+      setCreatingDept(false);
+      await refetchDepts();
+      setForm(prev => ({ ...prev, department: dept.id }));
+    } catch (err) {
+      alert('Failed to create department');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,10 +73,39 @@ const JobsPage: React.FC = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Department</label>
-                    <select className="form-control" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} required>
-                      <option value="">Select...</option>
-                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                    </select>
+                    {!creatingDept ? (
+                      <>
+                        <select className="form-control" value={form.department} onChange={e => {
+                          if (e.target.value === '__new__') {
+                            setCreatingDept(true);
+                          } else {
+                            setForm({ ...form, department: e.target.value });
+                          }
+                        }} required>
+                          <option value="">Select...</option>
+                          {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                          <option value="__new__">+ Create New Department</option>
+                        </select>
+                        {departments.length === 0 && (
+                          <p style={{ fontSize: '0.75rem', color: 'var(--warning)', marginTop: '0.25rem' }}>
+                            No departments yet. Select "+ Create New Department" above.
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input
+                          className="form-control"
+                          placeholder="Department name..."
+                          value={newDeptName}
+                          onChange={e => setNewDeptName(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateDept(); } }}
+                          autoFocus
+                        />
+                        <button type="button" className="btn btn-primary btn-sm" onClick={handleCreateDept}>Add</button>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setCreatingDept(false)}>Cancel</button>
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
                     <label>Experience Level</label>
