@@ -5,7 +5,9 @@ import type {
   PaginatedResponse,
 } from '../types';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8046/api';
+// Use the same hostname the browser used to reach the frontend, with the backend port
+const API_BASE = process.env.REACT_APP_API_URL ||
+  `${window.location.protocol}//${window.location.hostname}:8046/api`;
 
 const api = axios.create({
   baseURL: API_BASE,
