@@ -573,7 +573,7 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
 
 # ─── Users list (for panel assignment) ────────────────────────
 @api_view(["GET"])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def users_list(request):
     users = User.objects.all().order_by("first_name")
     return Response(UserMinimalSerializer(users, many=True).data)
@@ -581,7 +581,7 @@ def users_list(request):
 
 # ─── Dashboard Stats ─────────────────────────────────────────
 @api_view(["GET"])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def dashboard_stats(request):
     total_candidates = Candidate.objects.count()
     candidates_by_stage = dict(
@@ -625,7 +625,7 @@ def dashboard_stats(request):
 
 
 @api_view(["POST"])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def bulk_evaluate(request):
     serializer = BulkEvaluateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

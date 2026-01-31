@@ -13,6 +13,58 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
+# ─── User Profile (extends Django User via OneToOne) ─────────
+class UserProfile(models.Model):
+    class Role(models.TextChoices):
+        ADMIN = "admin", "Administrator"
+        HR = "hr", "HR Official"
+        INTERVIEWER = "interviewer", "Interviewer"
+        HIRING_MANAGER = "hiring_manager", "Hiring Manager"
+        CANDIDATE = "candidate", "Candidate"
+        VIEWER = "viewer", "Viewer (Read-Only)"
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.VIEWER)
+    profile_picture = models.ImageField(upload_to="profile_pics/%Y/%m/", null=True, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    title = models.CharField(max_length=200, blank=True, help_text="Job title")
+    department = models.CharField(max_length=200, blank=True)
+    bio = models.TextField(blank=True)
+
+    # MFA (TOTP)
+    mfa_secret = models.CharField(max_length=64, blank=True, help_text="TOTP secret key")
+    mfa_enabled = models.BooleanField(default=False)
+    mfa_backup_codes = models.JSONField(default=list, blank=True, help_text="One-time backup codes")
+
+    # Linked candidate record (for candidate role)
+    linked_candidate = models.ForeignKey(
+        "Candidate", on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="user_profile", help_text="Linked candidate record for candidate users",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.username} ({self.get_role_display()})"
+
+    @property
+    def is_admin(self):
+        return self.role == self.Role.ADMIN or self.user.is_superuser
+
+    @property
+    def is_hr(self):
+        return self.role in [self.Role.ADMIN, self.Role.HR]
+
+    @property
+    def is_interviewer(self):
+        return self.role in [self.Role.ADMIN, self.Role.HR, self.Role.INTERVIEWER, self.Role.HIRING_MANAGER]
+
+    @property
+    def is_candidate(self):
+        return self.role == self.Role.CANDIDATE
+
+
 # ─── Job / Position ────────────────────────────────────────────
 class Department(TimeStampedModel):
     name = models.CharField(max_length=200, unique=True)

@@ -13,7 +13,87 @@ const API_BASE = process.env.REACT_APP_API_URL ||
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
+
+// ─── CSRF Token Management ───────────────────────────────────
+function getCsrfToken(): string {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : '';
+}
+
+api.interceptors.request.use((config) => {
+  const method = config.method?.toLowerCase();
+  if (method && ['post', 'put', 'patch', 'delete'].includes(method)) {
+    config.headers['X-CSRFToken'] = getCsrfToken();
+  }
+  return config;
+});
+
+// ─── Auth ────────────────────────────────────────────────────
+export const fetchCsrfToken = () =>
+  api.get('/auth/csrf/').then(r => r.data);
+
+export const loginUser = (data: { username: string; password: string; mfa_code?: string }) =>
+  api.post('/auth/login/', data).then(r => r.data);
+
+export const logoutUser = () =>
+  api.post('/auth/logout/').then(r => r.data);
+
+export const registerUser = (data: {
+  username: string; email: string; password: string; password_confirm: string;
+  first_name?: string; last_name?: string; role?: string;
+}) => api.post('/auth/register/', data).then(r => r.data);
+
+export const getMe = () =>
+  api.get('/auth/me/').then(r => r.data);
+
+export const updateProfile = (data: Record<string, any>) =>
+  api.patch('/auth/profile/', data).then(r => r.data);
+
+export const uploadProfilePicture = (file: File) => {
+  const formData = new FormData();
+  formData.append('profile_picture', file);
+  return api.post('/auth/profile/picture/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then(r => r.data);
+};
+
+export const changePassword = (data: {
+  current_password: string; new_password: string; new_password_confirm: string;
+}) => api.post('/auth/change-password/', data).then(r => r.data);
+
+// ─── MFA ────────────────────────────────────────────────────
+export const setupMfa = () =>
+  api.post('/auth/mfa/setup/').then(r => r.data);
+
+export const verifyMfa = (code: string) =>
+  api.post('/auth/mfa/verify/', { code }).then(r => r.data);
+
+export const disableMfa = (password: string) =>
+  api.post('/auth/mfa/disable/', { password }).then(r => r.data);
+
+// ─── Candidate Self-Service ─────────────────────────────────
+export const getCandidateProfile = () =>
+  api.get('/auth/candidate/profile/').then(r => r.data);
+
+export const updateCandidateProfile = (data: Record<string, any>) =>
+  api.patch('/auth/candidate/update/', data).then(r => r.data);
+
+export const uploadCandidateResume = (file: File) => {
+  const formData = new FormData();
+  formData.append('resume_file', file);
+  return api.post('/auth/candidate/resume/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then(r => r.data);
+};
+
+// ─── Admin User Management ──────────────────────────────────
+export const getUsersWithRoles = () =>
+  api.get('/auth/users/').then(r => r.data);
+
+export const updateUserRole = (userId: number, data: { role?: string; is_active?: boolean }) =>
+  api.patch(`/auth/users/${userId}/role/`, data).then(r => r.data);
 
 // ─── Dashboard ────────────────────────────────────────────────
 export const getDashboardStats = () =>
