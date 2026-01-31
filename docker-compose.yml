@@ -186,7 +186,7 @@ services:
     container_name: fairhire-frontend
     restart: unless-stopped
     ports:
-      - "3046:3000"
+      - "3047:3000"
     environment:
       - REACT_APP_API_URL=http://localhost:8046/api
       - REACT_APP_WS_URL=ws://localhost:8046/ws
