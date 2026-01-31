@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: fairhire
       POSTGRES_PASSWORD: fairhire_secret
     ports:
-      - "5433:5432"
+      - "5446:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -28,7 +28,7 @@ services:
     container_name: fairhire-redis
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6346:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -48,7 +48,7 @@ services:
       bash -c "python manage.py migrate --noinput &&
                python manage.py collectstatic --noinput &&
                python manage.py ensure_superuser &&
-               gunicorn fairhire.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 300"
+               gunicorn fairhire.wsgi:application --bind 0.0.0.0:8046 --workers 4 --timeout 300"
     environment:
       - DATABASE_URL=postgresql://fairhire:fairhire_secret@postgres:5432/fairhire
       - REDIS_URL=redis://redis:6379/0
@@ -60,7 +60,7 @@ services:
       - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
     ports:
-      - "8000:8000"
+      - "8046:8046"
     volumes:
       - ./backend:/app
       - media_data:/app/media
@@ -129,7 +129,7 @@ services:
       dockerfile: Dockerfile
     container_name: fairhire-mcp-server
     restart: unless-stopped
-    command: python manage.py run_mcp_server --host 0.0.0.0 --port 8100
+    command: python manage.py run_mcp_server --host 0.0.0.0 --port 8146
     environment:
       - DATABASE_URL=postgresql://fairhire:fairhire_secret@postgres:5432/fairhire
       - REDIS_URL=redis://redis:6379/0
@@ -138,7 +138,7 @@ services:
       - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
     ports:
-      - "8100:8100"
+      - "8146:8146"
     volumes:
       - ./backend:/app
       - media_data:/app/media
@@ -157,7 +157,7 @@ services:
       dockerfile: Dockerfile
     container_name: fairhire-a2a-server
     restart: unless-stopped
-    command: python manage.py run_a2a_server --host 0.0.0.0 --port 8200
+    command: python manage.py run_a2a_server --host 0.0.0.0 --port 8246
     environment:
       - DATABASE_URL=postgresql://fairhire:fairhire_secret@postgres:5432/fairhire
       - REDIS_URL=redis://redis:6379/0
@@ -166,7 +166,7 @@ services:
       - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
     ports:
-      - "8200:8200"
+      - "8246:8246"
     volumes:
       - ./backend:/app
       - media_data:/app/media
@@ -186,12 +186,12 @@ services:
     container_name: fairhire-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3046:3000"
     environment:
-      - REACT_APP_API_URL=http://localhost:8000/api
-      - REACT_APP_WS_URL=ws://localhost:8000/ws
-      - REACT_APP_MCP_URL=http://localhost:8100
-      - REACT_APP_A2A_URL=http://localhost:8200
+      - REACT_APP_API_URL=http://localhost:8046/api
+      - REACT_APP_WS_URL=ws://localhost:8046/ws
+      - REACT_APP_MCP_URL=http://localhost:8146
+      - REACT_APP_A2A_URL=http://localhost:8246
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public

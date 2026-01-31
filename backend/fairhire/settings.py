@@ -68,7 +68,7 @@ ASGI_APPLICATION = "fairhire.asgi.application"
 # ─── Database ──────────────────────────────────────────────────
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgresql://fairhire:fairhire_secret@localhost:5433/fairhire",
+        default="postgresql://fairhire:fairhire_secret@localhost:5446/fairhire",
         conn_max_age=600,
     )
 }
@@ -98,7 +98,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ─── CORS ──────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:3000"
+    "CORS_ALLOWED_ORIGINS", "http://localhost:3046"
 ).split(",")
 
 # ─── REST Framework ───────────────────────────────────────────
@@ -116,7 +116,7 @@ REST_FRAMEWORK = {
 }
 
 # ─── Celery ────────────────────────────────────────────────────
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6380/1")
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6346/1")
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
@@ -130,7 +130,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.environ.get("REDIS_URL", "redis://localhost:6380/0")],
+            "hosts": [os.environ.get("REDIS_URL", "redis://localhost:6346/0")],
         },
     },
 }
