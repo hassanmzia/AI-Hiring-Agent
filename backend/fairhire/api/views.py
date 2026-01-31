@@ -15,6 +15,7 @@ from fairhire.core.models import (
     InterviewFeedback, Offer, OfferApproval, HiringTeamMember,
     EvaluationTemplate, ActivityLog,
 )
+from fairhire.core.services import auto_setup_interviews as _auto_setup_interviews
 from fairhire.agents.tasks import run_pipeline_task, run_single_agent_task, bulk_evaluate_candidates
 from .serializers import (
     DepartmentSerializer, JobPositionListSerializer, JobPositionDetailSerializer,
@@ -636,52 +637,4 @@ def bulk_evaluate(request):
     return Response({"task_id": str(result.id), "status": "queued"})
 
 
-# ─── Helper: Auto-setup interviews ───────────────────────────
-def _auto_setup_interviews(candidate: Candidate) -> list:
-    """Create draft interviews for a shortlisted candidate based on job's interview rounds."""
-    job = candidate.job_position
-    rounds = job.interview_rounds.order_by("order")
-
-    if not rounds.exists():
-        defaults = [
-            {"round_type": "phone_screen", "name": "Phone Screen", "order": 1, "duration_minutes": 30},
-            {"round_type": "technical", "name": "Technical Interview", "order": 2, "duration_minutes": 60},
-            {"round_type": "behavioral", "name": "Behavioral Interview", "order": 3, "duration_minutes": 45},
-        ]
-        for d in defaults:
-            InterviewRound.objects.create(job_position=job, **d)
-        rounds = job.interview_rounds.order_by("order")
-
-    round_type_map = {
-        "phone_screen": "phone",
-        "technical": "technical",
-        "behavioral": "behavioral",
-        "panel": "panel",
-        "final": "final",
-        "custom": "technical",
-    }
-
-    interviews = []
-    for round_obj in rounds:
-        if candidate.interviews.filter(interview_round=round_obj).exists():
-            continue
-        interview = Interview.objects.create(
-            candidate=candidate,
-            interview_round=round_obj,
-            interview_type=round_type_map.get(round_obj.round_type, "technical"),
-            duration_minutes=round_obj.duration_minutes,
-            status=Interview.Status.DRAFT,
-        )
-        interviews.append(interview)
-
-    if interviews:
-        candidate.stage = Candidate.Stage.INTERVIEW_SETUP
-        candidate.save(update_fields=["stage"])
-        ActivityLog.objects.create(
-            event_type=ActivityLog.EventType.INTERVIEW_SCHEDULED,
-            candidate=candidate,
-            job_position=job,
-            message=f"{len(interviews)} interview round(s) set up for {candidate.full_name}",
-        )
-
-    return interviews
+# _auto_setup_interviews is imported from fairhire.core.services

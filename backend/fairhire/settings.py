@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     "django_celery_results",
     "channels",
     # Local apps
-    "fairhire.core",
+    "fairhire.core.apps.CoreConfig",
     "fairhire.api",
     "fairhire.agents",
     "fairhire.responsible_ai",
