@@ -11,7 +11,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
 from rest_framework import status, permissions
-from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes, authentication_classes
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 
@@ -22,6 +22,7 @@ logger = logging.getLogger("fairhire.api")
 
 # ─── CSRF Token ──────────────────────────────────────────────
 @api_view(["GET"])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def csrf_token_view(request):
     """Return a CSRF token for the frontend to use."""
@@ -31,6 +32,7 @@ def csrf_token_view(request):
 
 # ─── Login ───────────────────────────────────────────────────
 @api_view(["POST"])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def login_view(request):
     username = request.data.get("username", "").strip()
@@ -83,6 +85,7 @@ def logout_view(request):
 
 # ─── Register ────────────────────────────────────────────────
 @api_view(["POST"])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def register_view(request):
     username = request.data.get("username", "").strip()
