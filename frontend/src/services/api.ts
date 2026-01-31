@@ -242,6 +242,9 @@ export const reviseOffer = (id: string, data: Record<string, any>) =>
 export const markHired = (offerId: string) =>
   api.post(`/offers/${offerId}/mark_hired/`).then(r => r.data);
 
+export const generateOfferLetter = (offerId: string) =>
+  api.post(`/offers/${offerId}/generate_letter/`).then(r => r.data);
+
 // ─── Users ────────────────────────────────────────────────────
 export const getUsers = () =>
   api.get<UserMinimal[]>('/users/').then(r => r.data);
