@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getMe, loginUser, logoutUser, registerUser, fetchCsrfToken } from '../services/api';
+import {
+  getMe, loginUser, logoutUser, registerUser, fetchCsrfToken,
+  setAuthToken, getAuthToken,
+} from '../services/api';
 
 export interface AuthUser {
   id: number;
@@ -53,17 +56,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = useCallback(async () => {
     try {
       const data = await getMe();
+      // Keep token fresh from server response
+      if (data.token) {
+        setAuthToken(data.token);
+      }
       setUser(data);
     } catch {
       setUser(null);
+      setAuthToken(null);
     }
   }, []);
 
   useEffect(() => {
     const init = async () => {
       try {
-        await fetchCsrfToken();
-        await refreshUser();
+        // Try CSRF token (for session auth fallback)
+        try { await fetchCsrfToken(); } catch { /* ignore */ }
+        // If we have a stored token, try to restore the session
+        if (getAuthToken()) {
+          await refreshUser();
+        } else {
+          setUser(null);
+        }
       } catch { /* not logged in */ }
       setLoading(false);
     };
@@ -71,10 +85,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [refreshUser]);
 
   const login = async (username: string, password: string, mfaCode?: string) => {
-    await fetchCsrfToken();
+    try { await fetchCsrfToken(); } catch { /* ignore */ }
     const data = await loginUser({ username, password, mfa_code: mfaCode });
     if (data.mfa_required) {
       return data; // Caller handles MFA prompt
+    }
+    // Store auth token for persistent authentication
+    if (data.token) {
+      setAuthToken(data.token);
     }
     setUser(data);
     return data;
@@ -84,14 +102,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     username: string; email: string; password: string; password_confirm: string;
     first_name?: string; last_name?: string; role?: string;
   }) => {
-    await fetchCsrfToken();
+    try { await fetchCsrfToken(); } catch { /* ignore */ }
     const result = await registerUser(data);
+    if (result.token) {
+      setAuthToken(result.token);
+    }
     setUser(result);
     return result;
   };
 
   const logout = async () => {
     try { await logoutUser(); } catch { /* ignore */ }
+    setAuthToken(null);
     setUser(null);
   };
 

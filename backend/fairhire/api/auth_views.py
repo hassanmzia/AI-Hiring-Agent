@@ -11,6 +11,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
 from rest_framework import status, permissions
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes, parser_classes, authentication_classes
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
@@ -72,7 +73,10 @@ def login_view(request):
                 return Response({"error": "Invalid MFA code"}, status=401)
 
     login(request, user)
-    return Response(_user_response(user, profile))
+    token, _ = Token.objects.get_or_create(user=user)
+    data = _user_response(user, profile)
+    data["token"] = token.key
+    return Response(data)
 
 
 # ─── Logout ──────────────────────────────────────────────────
@@ -128,7 +132,10 @@ def register_view(request):
     profile = UserProfile.objects.create(user=user, role=role)
 
     login(request, user)
-    return Response(_user_response(user, profile), status=201)
+    token, _ = Token.objects.get_or_create(user=user)
+    data = _user_response(user, profile)
+    data["token"] = token.key
+    return Response(data, status=201)
 
 
 # ─── Current User (me) ──────────────────────────────────────
@@ -136,7 +143,10 @@ def register_view(request):
 @permission_classes([permissions.IsAuthenticated])
 def me_view(request):
     profile = _get_or_create_profile(request.user)
-    return Response(_user_response(request.user, profile))
+    data = _user_response(request.user, profile)
+    token, _ = Token.objects.get_or_create(user=request.user)
+    data["token"] = token.key
+    return Response(data)
 
 
 # ─── Update Profile ─────────────────────────────────────────

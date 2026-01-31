@@ -7,8 +7,7 @@ import type {
   PaginatedResponse,
 } from '../types';
 
-// In Docker, the React dev server proxies /api/* to the backend container.
-// Set REACT_APP_API_URL to override (e.g. for direct backend access).
+// API base: use proxy (/api) in Docker, or direct backend URL as fallback.
 const API_BASE = process.env.REACT_APP_API_URL || '/api';
 
 const api = axios.create({
@@ -17,16 +16,35 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// ─── CSRF Token Management ───────────────────────────────────
-function getCsrfToken(): string {
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? match[1] : '';
+// ─── Token Auth Management ──────────────────────────────────
+const AUTH_TOKEN_KEY = 'fairhire_auth_token';
+
+export function setAuthToken(token: string | null) {
+  if (token) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
 }
 
+export function getAuthToken(): string | null {
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+// Attach auth token and CSRF token to every request
 api.interceptors.request.use((config) => {
+  // Token auth (primary — works across origins, survives refresh)
+  const token = getAuthToken();
+  if (token) {
+    config.headers['Authorization'] = `Token ${token}`;
+  }
+  // CSRF token (backup for session auth)
   const method = config.method?.toLowerCase();
   if (method && ['post', 'put', 'patch', 'delete'].includes(method)) {
-    config.headers['X-CSRFToken'] = getCsrfToken();
+    const csrfMatch = document.cookie.match(/csrftoken=([^;]+)/);
+    if (csrfMatch) {
+      config.headers['X-CSRFToken'] = csrfMatch[1];
+    }
   }
   return config;
 });
