@@ -56,6 +56,8 @@ services:
       - DJANGO_SECRET_KEY=change-me-in-production-abc123
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=*
+      - CORS_ALLOWED_ORIGINS=http://localhost:3047,http://localhost:3000,http://127.0.0.1:3047,http://172.168.1.95:3047
+      - CSRF_TRUSTED_ORIGINS=http://localhost:3047,http://localhost:3000,http://127.0.0.1:3047,http://localhost:8046,http://172.168.1.95:3047,http://172.168.1.95:8046
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
