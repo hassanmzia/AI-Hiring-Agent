@@ -9,7 +9,12 @@ const Dashboard: React.FC = () => {
   const { data: stats, loading, error } = useApi<DashboardStats>(() => getDashboardStats());
 
   if (loading) return <Loading />;
-  if (error || !stats) return <div className="empty-state"><p>Failed to load dashboard</p></div>;
+  if (error || !stats) return (
+    <div className="empty-state">
+      <p>Failed to load dashboard</p>
+      {error && <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)' }}>{error}</p>}
+    </div>
+  );
 
   const stageOrder = ['new', 'parsing', 'parsed', 'guardrail_check', 'scoring', 'scored', 'summarized', 'bias_audit', 'reviewed', 'shortlisted', 'interview', 'offer', 'hired', 'rejected'];
 
