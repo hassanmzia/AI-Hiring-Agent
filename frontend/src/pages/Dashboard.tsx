@@ -16,7 +16,16 @@ const Dashboard: React.FC = () => {
     </div>
   );
 
-  const stageOrder = ['new', 'parsing', 'parsed', 'guardrail_check', 'scoring', 'scored', 'summarized', 'bias_audit', 'reviewed', 'shortlisted', 'interview', 'offer', 'hired', 'rejected'];
+  const stageOrder = [
+    'new', 'parsing', 'parsed', 'guardrail_check', 'scoring', 'scored',
+    'summarized', 'bias_audit', 'reviewed', 'shortlisted',
+    'interview_setup', 'phone_screen', 'technical_interview',
+    'behavioral_interview', 'panel_interview', 'final_interview',
+    'interview_complete', 'final_evaluation',
+    'approved_for_offer', 'offer_drafting', 'offer_approval',
+    'offer_extended', 'offer_negotiation', 'offer_accepted', 'offer_declined',
+    'hired', 'rejected', 'on_hold', 'withdrawn',
+  ];
 
   return (
     <div>
@@ -54,6 +63,21 @@ const Dashboard: React.FC = () => {
           <div className="stat-sub">
             <Link to="/fairness">View fairness report</Link>
           </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Interviews</div>
+          <div className="stat-value">{stats.interviews_scheduled ?? 0}</div>
+          <div className="stat-sub">{stats.interviews_completed ?? 0} completed</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Offers</div>
+          <div className="stat-value" style={{ color: 'var(--primary)' }}>{stats.offers_sent ?? 0}</div>
+          <div className="stat-sub">{stats.offers_pending ?? 0} pending approval</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Hired</div>
+          <div className="stat-value" style={{ color: 'var(--success)' }}>{stats.total_hired ?? 0}</div>
+          <div className="stat-sub">{stats.offers_accepted ?? 0} accepted / {stats.offers_declined ?? 0} declined</div>
         </div>
       </div>
 

@@ -21,6 +21,10 @@ def run_pipeline_task(self, candidate_id: str, run_bias_audit: bool = True):
     except Candidate.DoesNotExist:
         logger.error(f"Candidate {candidate_id} not found")
         raise
+    except ValueError as e:
+        # Validation errors (e.g., no resume text) should not be retried
+        logger.error(f"Pipeline validation error for {candidate_id}: {e}")
+        raise
     except Exception as e:
         logger.error(f"Pipeline task failed for {candidate_id}: {e}")
         raise self.retry(exc=e, countdown=30)
