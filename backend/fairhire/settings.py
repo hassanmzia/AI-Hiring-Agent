@@ -97,7 +97,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ─── CORS ──────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:3047,http://172.168.1.95:3047"
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3047,http://localhost:3000,http://172.168.1.95:3047"
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
@@ -109,8 +110,10 @@ SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_SAVE_EVERY_REQUEST = True
 CSRF_COOKIE_HTTPONLY = False  # JS needs to read it
 CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_USE_SESSIONS = False
 CSRF_TRUSTED_ORIGINS = os.environ.get(
-    "CSRF_TRUSTED_ORIGINS", "http://localhost:3047,http://172.168.1.95:3047"
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:3047,http://localhost:3000,http://localhost:8046,http://172.168.1.95:3047,http://172.168.1.95:8046"
 ).split(",")
 
 # ─── REST Framework ───────────────────────────────────────────
