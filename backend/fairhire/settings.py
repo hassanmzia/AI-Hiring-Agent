@@ -11,7 +11,6 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
 # ─── Application definition ───────────────────────────────────
 INSTALLED_APPS = [
-    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -68,7 +67,7 @@ ASGI_APPLICATION = "fairhire.asgi.application"
 # ─── Database ──────────────────────────────────────────────────
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgresql://fairhire:fairhire_secret@localhost:5446/fairhire",
+        default="postgresql://fairhire:fairhire_secret@localhost:5432/fairhire",
         conn_max_age=600,
     )
 }
@@ -98,7 +97,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ─── CORS ──────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:3046"
+    "CORS_ALLOWED_ORIGINS", "http://localhost:3047,http://172.168.1.95:3047"
 ).split(",")
 
 # ─── REST Framework ───────────────────────────────────────────
