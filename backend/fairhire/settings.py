@@ -95,12 +95,23 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ─── CORS ──────────────────────────────────────────────────────
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+# CORS_ALLOW_ALL_ORIGINS must be False when using credentials
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
     "http://localhost:3047,http://localhost:3000,http://172.168.1.95:3047"
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    "accept", "authorization", "content-type", "user-agent",
+    "x-csrftoken", "x-requested-with",
+]
+# Also allow any origin on port 3047/3000 for dev (regex-based)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
+    r"^http://\d+\.\d+\.\d+\.\d+:(3047|3000)$",
+]
 
 # ─── Session / CSRF ──────────────────────────────────────────
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
