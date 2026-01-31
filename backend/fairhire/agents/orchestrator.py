@@ -36,6 +36,18 @@ def run_full_pipeline(candidate: Candidate, run_bias_audit: bool = True) -> dict
     }
 
     try:
+        # Pre-check: ensure resume text is available
+        if not candidate.resume_text or not candidate.resume_text.strip():
+            raise ValueError(
+                f"Candidate {candidate.id} has no resume text. "
+                "Please upload a resume file or paste resume text before running the pipeline."
+            )
+
+        logger.info(
+            f"Pipeline starting for candidate {candidate.id}, "
+            f"resume_text length={len(candidate.resume_text)}"
+        )
+
         # Step 1: Parse Resume
         logger.info(f"Pipeline step 1/5: Parsing resume for candidate {candidate.id}")
         candidate.stage = Candidate.Stage.PARSING

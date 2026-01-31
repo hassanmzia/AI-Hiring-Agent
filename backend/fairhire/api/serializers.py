@@ -1,8 +1,12 @@
+import logging
+
 from rest_framework import serializers
 from fairhire.core.models import (
     Department, JobPosition, Candidate, AgentExecution,
     BiasProbe, Interview, EvaluationTemplate, ActivityLog,
 )
+
+logger = logging.getLogger("fairhire.api")
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -86,16 +90,42 @@ class CandidateCreateSerializer(serializers.ModelSerializer):
             "phone", "resume_file", "resume_text",
         ]
 
+    def validate(self, attrs):
+        resume_file = attrs.get("resume_file")
+        resume_text = attrs.get("resume_text", "").strip()
+        if not resume_file and not resume_text:
+            raise serializers.ValidationError(
+                "Please upload a resume file or paste resume text."
+            )
+        return attrs
+
     def create(self, validated_data):
         resume_file = validated_data.get("resume_file")
         if resume_file and not validated_data.get("resume_text"):
-            validated_data["resume_text"] = self._extract_text(resume_file)
+            logger.info(f"Extracting text from uploaded file: {resume_file.name} ({resume_file.size} bytes)")
+            resume_file.seek(0)
+            extracted = self._extract_text(resume_file)
+            logger.info(f"Extracted {len(extracted)} chars from {resume_file.name}")
+            validated_data["resume_text"] = extracted
+            resume_file.seek(0)
+        # Also handle case where resume_text was pasted via form
+        resume_text = validated_data.get("resume_text", "")
+        if resume_text:
+            validated_data["resume_text"] = resume_text.strip()
+        if not validated_data.get("resume_text"):
+            raise serializers.ValidationError(
+                "Could not extract any text from the uploaded file. "
+                "Please try a different file or paste the resume text directly."
+            )
         candidate = super().create(validated_data)
+        logger.info(
+            f"Candidate {candidate.id} created with resume_text length={len(candidate.resume_text)}"
+        )
         ActivityLog.objects.create(
             event_type=ActivityLog.EventType.CANDIDATE_CREATED,
             candidate=candidate,
             job_position=candidate.job_position,
-            message=f"Candidate {candidate.full_name or 'New'} created",
+            message=f"Candidate {candidate.full_name or 'New'} created for {candidate.job_position.title}",
         )
         return candidate
 
@@ -103,25 +133,31 @@ class CandidateCreateSerializer(serializers.ModelSerializer):
         """Extract text from uploaded file."""
         name = file_obj.name.lower()
         content = file_obj.read()
+        logger.info(f"_extract_text: file={name}, raw_bytes={len(content)}")
         if name.endswith(".txt") or name.endswith(".json"):
-            return content.decode("utf-8", errors="replace")
+            text = content.decode("utf-8", errors="replace")
         elif name.endswith(".pdf"):
             try:
                 import PyPDF2
                 import io
                 reader = PyPDF2.PdfReader(io.BytesIO(content))
-                return "\n".join(page.extract_text() or "" for page in reader.pages)
-            except Exception:
-                return content.decode("utf-8", errors="replace")
+                text = "\n".join(page.extract_text() or "" for page in reader.pages)
+            except Exception as e:
+                logger.warning(f"PyPDF2 extraction failed for {name}: {e}")
+                text = content.decode("utf-8", errors="replace")
         elif name.endswith(".docx"):
             try:
                 import docx
                 import io
                 doc = docx.Document(io.BytesIO(content))
-                return "\n".join(p.text for p in doc.paragraphs)
-            except Exception:
-                return content.decode("utf-8", errors="replace")
-        return content.decode("utf-8", errors="replace")
+                text = "\n".join(p.text for p in doc.paragraphs)
+            except Exception as e:
+                logger.warning(f"DOCX extraction failed for {name}: {e}")
+                text = content.decode("utf-8", errors="replace")
+        else:
+            text = content.decode("utf-8", errors="replace")
+        logger.info(f"_extract_text: extracted {len(text)} chars from {name}")
+        return text
 
 
 class AgentExecutionSerializer(serializers.ModelSerializer):
