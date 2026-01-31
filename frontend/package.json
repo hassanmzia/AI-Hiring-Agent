@@ -21,6 +21,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
+  "proxy": "http://backend:8046",
   "browserslist": {
     "production": [
       ">0.2%",
