@@ -12,7 +12,7 @@ export function useApi<T>(fetcher: () => Promise<T>, deps: any[] = []): UseApiRe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -23,10 +23,10 @@ export function useApi<T>(fetcher: () => Promise<T>, deps: any[] = []): UseApiRe
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line
   }, deps);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  return { data, loading, error, refetch: fetch };
+  return { data, loading, error, refetch: fetchData };
 }
