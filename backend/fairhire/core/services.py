@@ -3,7 +3,8 @@
 import logging
 
 from fairhire.core.models import (
-    Candidate, Interview, InterviewRound, ActivityLog,
+    Candidate, Interview, InterviewRound, InterviewPanel,
+    InterviewFeedback, ActivityLog,
 )
 
 logger = logging.getLogger("fairhire.core")
@@ -56,6 +57,23 @@ def auto_setup_interviews(candidate: Candidate) -> list:
     if interviews:
         candidate.stage = Candidate.Stage.INTERVIEW_SETUP
         candidate.save(update_fields=["stage"])
+
+        # Auto-assign the job creator (hiring manager) as panel lead
+        # so feedback slots are immediately available.
+        hiring_manager = job.created_by
+        if hiring_manager:
+            for interview in interviews:
+                panel, created = InterviewPanel.objects.get_or_create(
+                    interview=interview,
+                    interviewer=hiring_manager,
+                    defaults={"role": InterviewPanel.PanelRole.LEAD},
+                )
+                if created:
+                    InterviewFeedback.objects.get_or_create(
+                        interview=interview,
+                        interviewer=hiring_manager,
+                    )
+
         ActivityLog.objects.create(
             event_type=ActivityLog.EventType.INTERVIEW_SCHEDULED,
             candidate=candidate,

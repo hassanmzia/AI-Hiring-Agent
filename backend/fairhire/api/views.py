@@ -241,6 +241,25 @@ class InterviewViewSet(viewsets.ModelViewSet):
             return InterviewDetailSerializer
         return InterviewSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        """Auto-assign hiring manager as panel lead if no panel members exist."""
+        interview = self.get_object()
+        if not interview.panel_members.exists():
+            hiring_manager = interview.candidate.job_position.created_by
+            if hiring_manager:
+                panel, created = InterviewPanel.objects.get_or_create(
+                    interview=interview,
+                    interviewer=hiring_manager,
+                    defaults={"role": InterviewPanel.PanelRole.LEAD},
+                )
+                if created:
+                    InterviewFeedback.objects.get_or_create(
+                        interview=interview,
+                        interviewer=hiring_manager,
+                    )
+        serializer = self.get_serializer(interview)
+        return Response(serializer.data)
+
     @action(detail=True, methods=["post"])
     def generate_questions(self, request, pk=None):
         from fairhire.agents.llm_client import chat_json
