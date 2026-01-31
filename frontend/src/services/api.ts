@@ -7,8 +7,9 @@ import type {
   PaginatedResponse,
 } from '../types';
 
-const API_BASE = process.env.REACT_APP_API_URL ||
-  `${window.location.protocol}//${window.location.hostname}:8046/api`;
+// In Docker, the React dev server proxies /api/* to the backend container.
+// Set REACT_APP_API_URL to override (e.g. for direct backend access).
+const API_BASE = process.env.REACT_APP_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
