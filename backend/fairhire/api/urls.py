@@ -9,6 +9,10 @@ router.register(r"jobs", views.JobPositionViewSet)
 router.register(r"candidates", views.CandidateViewSet)
 router.register(r"executions", views.AgentExecutionViewSet)
 router.register(r"interviews", views.InterviewViewSet)
+router.register(r"interview-rounds", views.InterviewRoundViewSet)
+router.register(r"interview-feedback", views.InterviewFeedbackViewSet)
+router.register(r"offers", views.OfferViewSet)
+router.register(r"hiring-team", views.HiringTeamMemberViewSet)
 router.register(r"templates", views.EvaluationTemplateViewSet)
 router.register(r"activity", views.ActivityLogViewSet)
 
@@ -16,4 +20,5 @@ urlpatterns = [
     path("", include(router.urls)),
     path("dashboard/", views.dashboard_stats, name="dashboard-stats"),
     path("bulk-evaluate/", views.bulk_evaluate, name="bulk-evaluate"),
+    path("users/", views.users_list, name="users-list"),
 ]

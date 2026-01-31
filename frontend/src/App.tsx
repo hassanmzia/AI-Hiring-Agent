@@ -8,6 +8,7 @@ import CandidatesPage from './pages/CandidatesPage';
 import CandidateDetailPage from './pages/CandidateDetailPage';
 import FairnessPage from './pages/FairnessPage';
 import InterviewsPage from './pages/InterviewsPage';
+import OffersPage from './pages/OffersPage';
 import ActivityPage from './pages/ActivityPage';
 
 const App: React.FC = () => {
@@ -28,6 +29,7 @@ const App: React.FC = () => {
             <NavLink to="/jobs">Job Positions</NavLink>
             <NavLink to="/candidates">Candidates</NavLink>
             <NavLink to="/interviews">Interviews</NavLink>
+            <NavLink to="/offers">Offers</NavLink>
 
             <div className="sidebar-section">Responsible AI</div>
             <NavLink to="/fairness">Fairness & Bias</NavLink>
@@ -43,6 +45,7 @@ const App: React.FC = () => {
             <Route path="/candidates/:id" element={<CandidateDetailPage />} />
             <Route path="/fairness" element={<FairnessPage />} />
             <Route path="/interviews" element={<InterviewsPage />} />
+            <Route path="/offers" element={<OffersPage />} />
             <Route path="/activity" element={<ActivityPage />} />
           </Routes>
         </main>
