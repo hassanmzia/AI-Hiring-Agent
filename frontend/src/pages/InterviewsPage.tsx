@@ -62,7 +62,9 @@ const InterviewsPage: React.FC = () => {
     try {
       const result = await generateInterviewQuestions(id);
       setQuestions(prev => ({ ...prev, [id]: result.questions }));
-      if (selectedId === id) await loadDetail(id);
+      // Auto-open the detail panel on Questions tab so user sees the result
+      await loadDetail(id);
+      setTab('questions');
     } catch { alert('Failed to generate questions'); }
     finally { setGenerating(null); }
   };
