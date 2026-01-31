@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   getOffers, getOffer, getUsers, sendOffer, candidateRespondOffer,
-  approveOffer, markHired, reviseOffer,
+  approveOffer, markHired, reviseOffer, generateOfferLetter,
 } from '../services/api';
 import { useApi } from '../hooks/useApi';
 import Loading from '../components/Loading';
@@ -17,6 +17,8 @@ const OffersPage: React.FC = () => {
   const [tab, setTab] = useState<'details' | 'approvals' | 'respond' | 'revise'>('details');
   const [respondForm, setRespondForm] = useState({ response: '', notes: '' });
   const [reviseForm, setReviseForm] = useState({ salary: '', signing_bonus: '', benefits_summary: '', negotiation_notes: '' });
+  const [generating, setGenerating] = useState(false);
+  const [emailSent, setEmailSent] = useState<Record<string, boolean>>({});
 
   const loadDetail = async (id: string) => {
     setSelectedId(id);
@@ -32,10 +34,23 @@ const OffersPage: React.FC = () => {
     setDetailLoading(false);
   };
 
+  const handleGenerateLetter = async () => {
+    if (!selectedId) return;
+    setGenerating(true);
+    try {
+      const result = await generateOfferLetter(selectedId);
+      if (detail) {
+        setDetail({ ...detail, offer_letter_text: result.letter });
+      }
+    } catch { alert('Failed to generate offer letter'); }
+    setGenerating(false);
+  };
+
   const handleSend = async () => {
     if (!selectedId) return;
     try {
       await sendOffer(selectedId);
+      setEmailSent(prev => ({ ...prev, [selectedId!]: true }));
       await loadDetail(selectedId);
       refetch();
     } catch (err: any) { alert(err?.response?.data?.error || 'Failed to send'); }
@@ -124,7 +139,14 @@ const OffersPage: React.FC = () => {
                     <td style={{ fontSize: '0.8rem' }}>{o.job_title}</td>
                     <td style={{ fontWeight: 600 }}>${Number(o.salary).toLocaleString()}</td>
                     <td><span className={`badge ${statusColor(o.status)}`}>{o.status.replace(/_/g, ' ')}</span></td>
-                    <td style={{ fontSize: '0.8rem' }}>{o.sent_at ? new Date(o.sent_at).toLocaleDateString() : '-'}</td>
+                    <td style={{ fontSize: '0.8rem' }}>
+                      {o.sent_at ? new Date(o.sent_at).toLocaleDateString() : '-'}
+                      {(o.status === 'sent' || emailSent[o.id]) && (
+                        <span style={{ marginLeft: '0.25rem', fontSize: '0.7rem', color: 'var(--primary)' }} title="Email notification sent">
+                          [notified]
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -175,18 +197,59 @@ const OffersPage: React.FC = () => {
                   <div className="card">
                     <div className="card-body">
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                        <button className="btn btn-outline" onClick={handleGenerateLetter} disabled={generating}>
+                          {generating ? 'Generating...' : detail.offer_letter_text ? 'Regenerate Letter (AI)' : 'Generate Offer Letter (AI)'}
+                        </button>
                         {(detail.status === 'approved' || detail.status === 'drafting') && (
-                          <button className="btn btn-primary" onClick={handleSend}>Send Offer to Candidate</button>
+                          <button className="btn btn-primary" onClick={handleSend}>
+                            Send Offer to Candidate
+                          </button>
                         )}
                         {detail.status === 'accepted' && (
                           <button className="btn btn-success" onClick={handleMarkHired}>Finalize Hire</button>
                         )}
                       </div>
-                      {detail.offer_letter_text && (
-                        <div style={{ padding: '1rem', background: 'var(--gray-50)', borderRadius: 'var(--radius)', whiteSpace: 'pre-wrap', fontSize: '0.85rem' }}>
-                          {detail.offer_letter_text}
+
+                      {detail.sent_at && (
+                        <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#eff6ff', borderRadius: 'var(--radius)', fontSize: '0.85rem', border: '1px solid #bfdbfe' }}>
+                          <strong>Email notification sent</strong> on {new Date(detail.sent_at).toLocaleString()}
+                          {detail.expires_at && (
+                            <span> — Expires: {new Date(detail.expires_at).toLocaleString()}</span>
+                          )}
                         </div>
                       )}
+
+                      {detail.offer_letter_text ? (
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '0.95rem' }}>Offer Letter</h3>
+                            <button className="btn btn-outline btn-sm" onClick={() => {
+                              const blob = new Blob([detail.offer_letter_text], { type: 'text/plain' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `offer_letter_${detail.candidate_name.replace(/\s+/g, '_')}.txt`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            }}>
+                              Download Letter
+                            </button>
+                          </div>
+                          <div style={{
+                            padding: '1.5rem', background: '#fff', borderRadius: 'var(--radius)',
+                            border: '1px solid var(--gray-200)', whiteSpace: 'pre-wrap',
+                            fontSize: '0.85rem', lineHeight: '1.6', maxHeight: '500px', overflowY: 'auto',
+                            fontFamily: 'Georgia, "Times New Roman", serif',
+                          }}>
+                            {detail.offer_letter_text}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--gray-400)', background: 'var(--gray-50)', borderRadius: 'var(--radius)' }}>
+                          No offer letter generated yet. Click "Generate Offer Letter (AI)" to create one.
+                        </div>
+                      )}
+
                       {detail.candidate_response && (
                         <div style={{ marginTop: '1rem', padding: '1rem', background: '#eff6ff', borderRadius: 'var(--radius)', fontSize: '0.85rem' }}>
                           <strong>Candidate Response:</strong> {detail.candidate_response}
@@ -218,6 +281,9 @@ const OffersPage: React.FC = () => {
                           <div>
                             <strong>{a.approver_name}</strong>
                             <span className="badge badge-gray" style={{ marginLeft: '0.5rem' }}>#{a.order}</span>
+                            {a.decision === 'pending' && (
+                              <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: 'var(--primary)' }}>[email sent]</span>
+                            )}
                             {a.comments && <p style={{ fontSize: '0.8rem', color: 'var(--gray-600)', margin: '0.25rem 0 0' }}>{a.comments}</p>}
                           </div>
                           <div>
@@ -255,6 +321,9 @@ const OffersPage: React.FC = () => {
                           onChange={e => setRespondForm({ ...respondForm, notes: e.target.value })}
                           placeholder="Candidate's response details..." />
                       </div>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)', marginBottom: '0.75rem' }}>
+                        Recording a response will automatically email the hiring manager.
+                      </p>
                       <button className="btn btn-primary" onClick={handleRespond} disabled={!respondForm.response}>
                         Record Response
                       </button>

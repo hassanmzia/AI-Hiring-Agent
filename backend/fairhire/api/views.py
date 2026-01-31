@@ -16,6 +16,7 @@ from fairhire.core.models import (
     EvaluationTemplate, ActivityLog,
 )
 from fairhire.core.services import auto_setup_interviews as _auto_setup_interviews
+from fairhire.core import notifications
 from fairhire.agents.tasks import run_pipeline_task, run_single_agent_task, bulk_evaluate_candidates
 from .serializers import (
     DepartmentSerializer, JobPositionListSerializer, JobPositionDetailSerializer,
@@ -311,6 +312,7 @@ class InterviewViewSet(viewsets.ModelViewSet):
             job_position=candidate.job_position,
             message=f"{interview.get_interview_type_display()} scheduled for {candidate.full_name}",
         )
+        notifications.notify_interview_scheduled(interview)
         return Response(InterviewDetailSerializer(interview).data)
 
     @action(detail=True, methods=["post"])
@@ -411,6 +413,7 @@ class InterviewFeedbackViewSet(viewsets.ModelViewSet):
             job_position=feedback.interview.candidate.job_position,
             message=f"Interview feedback submitted by {feedback.interviewer.get_full_name()}: {feedback.recommendation}",
         )
+        notifications.notify_feedback_submitted(feedback)
         return Response(InterviewFeedbackSerializer(feedback).data)
 
 
@@ -428,6 +431,48 @@ class OfferViewSet(viewsets.ModelViewSet):
         return OfferDetailSerializer
 
     @action(detail=True, methods=["post"])
+    def generate_letter(self, request, pk=None):
+        """Use AI to generate a professional offer letter."""
+        from fairhire.agents.llm_client import chat_json
+        offer = self.get_object()
+        candidate = offer.candidate
+        job = offer.job_position
+        messages = [
+            {"role": "system", "content": (
+                "Generate a professional, formal offer letter for a job candidate. "
+                "Return JSON: {\"letter\": \"<the full letter text>\"}\n"
+                "The letter should include: greeting, position details, compensation, "
+                "benefits, start date, employment type, and a warm closing. "
+                "Use a professional but welcoming tone."
+            )},
+            {"role": "user", "content": (
+                f"Candidate Name: {candidate.full_name}\n"
+                f"Position: {job.title}\n"
+                f"Department: {job.department.name}\n"
+                f"Company: FairHire Inc.\n"
+                f"Salary: ${offer.salary:,.2f} {offer.salary_currency}/{offer.salary_period}\n"
+                f"Employment Type: {offer.get_employment_type_display()}\n"
+                f"Start Date: {offer.start_date or 'To be determined'}\n"
+                f"Location: {offer.location or ('Remote' if offer.is_remote else 'To be determined')}\n"
+                f"Reporting To: {offer.reporting_to or 'To be determined'}\n"
+                f"Signing Bonus: {'$' + f'{offer.signing_bonus:,.2f}' if offer.signing_bonus else 'N/A'}\n"
+                f"Benefits: {offer.benefits_summary or 'Standard company benefits'}\n"
+                f"Equity: {offer.equity_details or 'N/A'}\n"
+                f"Bonus Structure: {offer.bonus_structure or 'N/A'}\n"
+                f"Candidate Skills: {candidate.skills}\n"
+                f"Experience: {candidate.experience_years} years\n"
+            )},
+        ]
+        try:
+            result = chat_json(messages)
+            letter_text = result.get("letter", "")
+            offer.offer_letter_text = letter_text
+            offer.save(update_fields=["offer_letter_text"])
+            return Response({"letter": letter_text})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+    @action(detail=True, methods=["post"])
     def submit_for_approval(self, request, pk=None):
         offer = self.get_object()
         approver_ids = request.data.get("approver_ids", [])
@@ -441,6 +486,7 @@ class OfferViewSet(viewsets.ModelViewSet):
                 OfferApproval.objects.get_or_create(
                     offer=offer, approver=approver, defaults={"order": i},
                 )
+                notifications.notify_approval_requested(offer, approver)
             except User.DoesNotExist:
                 pass
         offer.candidate.stage = Candidate.Stage.OFFER_APPROVAL
@@ -500,6 +546,7 @@ class OfferViewSet(viewsets.ModelViewSet):
             job_position=offer.job_position,
             message=f"Offer sent to {offer.candidate.full_name}: ${offer.salary}",
         )
+        notifications.notify_offer_sent(offer)
         return Response(OfferDetailSerializer(offer).data)
 
     @action(detail=True, methods=["post"])
@@ -536,6 +583,10 @@ class OfferViewSet(viewsets.ModelViewSet):
 
         offer.save()
         offer.candidate.save(update_fields=["stage"])
+        if response_type == "accepted":
+            notifications.notify_offer_accepted(offer)
+        elif response_type == "declined":
+            notifications.notify_offer_declined(offer)
         return Response(OfferDetailSerializer(offer).data)
 
     @action(detail=True, methods=["post"])
