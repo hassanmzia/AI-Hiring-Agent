@@ -131,7 +131,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {tab === 'profile' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '1.5rem' }}>
+        <div className="grid-sidebar">
           <div className="card">
             <div className="card-body" style={{ textAlign: 'center' }}>
               <div style={{
@@ -154,12 +154,12 @@ const ProfilePage: React.FC = () => {
           <div className="card">
             <div className="card-header"><h2>Personal Information</h2></div>
             <div className="card-body">
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
+              <div className="flex-form-row">
+                <div className="form-group">
                   <label>First Name</label>
                   <input className="form-control" value={profileForm.first_name} onChange={e => setProfileForm({ ...profileForm, first_name: e.target.value })} />
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-group">
                   <label>Last Name</label>
                   <input className="form-control" value={profileForm.last_name} onChange={e => setProfileForm({ ...profileForm, last_name: e.target.value })} />
                 </div>
@@ -172,12 +172,12 @@ const ProfilePage: React.FC = () => {
                 <label>Phone</label>
                 <input className="form-control" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} />
               </div>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
+              <div className="flex-form-row">
+                <div className="form-group">
                   <label>Title</label>
                   <input className="form-control" value={profileForm.title} onChange={e => setProfileForm({ ...profileForm, title: e.target.value })} />
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-group">
                   <label>Department</label>
                   <input className="form-control" value={profileForm.department} onChange={e => setProfileForm({ ...profileForm, department: e.target.value })} />
                 </div>
@@ -256,7 +256,7 @@ const ProfilePage: React.FC = () => {
                 <p style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
                   Save these backup codes in a safe place. Each code can only be used once:
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
                   {mfaData.backup_codes.map((code, i) => (
                     <code key={i} style={{ background: 'var(--gray-100)', padding: '0.5rem', textAlign: 'center', borderRadius: 4, fontSize: '0.85rem' }}>{code}</code>
                   ))}

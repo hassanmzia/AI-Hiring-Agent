@@ -150,7 +150,7 @@ const CandidateDetailPage: React.FC = () => {
       </div>
 
       {activeTab === 'overview' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+        <div className="grid-2">
           <div className="card">
             <div className="card-header"><h2>Candidate Info</h2></div>
             <div className="card-body">
@@ -194,7 +194,7 @@ const CandidateDetailPage: React.FC = () => {
             {scoring.components ? (
               Object.entries(scoring.components as Record<string, number>).map(([key, val]) => (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <span style={{ width: 180, fontSize: '0.875rem', color: 'var(--gray-600)' }}>{key.replace(/_/g, ' ')}</span>
+                  <span style={{ minWidth: 100, maxWidth: 180, fontSize: '0.875rem', color: 'var(--gray-600)' }}>{key.replace(/_/g, ' ')}</span>
                   <ScoreBar score={val} />
                   <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{(val * 100).toFixed(0)}%</span>
                 </div>
@@ -268,7 +268,7 @@ const CandidateDetailPage: React.FC = () => {
                   <h3 style={{ fontSize: '0.9rem', color: 'var(--gray-500)', marginBottom: '0.5rem' }}>Overall Assessment</h3>
                   <p>{summary.overall_assessment}</p>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
                   <div style={{ padding: '1rem', background: '#f0fdf4', borderRadius: 'var(--radius)' }}>
                     <h4 style={{ color: 'var(--success)', marginBottom: '0.5rem' }}>Strengths</h4>
                     <ul style={{ paddingLeft: '1.25rem', fontSize: '0.875rem' }}>
@@ -353,13 +353,13 @@ const CandidateDetailPage: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                    <div className="form-group" style={{ flex: 1 }}>
+                  <div className="flex-form-row">
+                    <div className="form-group">
                       <label>Final Score (0-5)</label>
                       <input type="number" min="0" max="5" step="0.1" className="form-control" value={finalForm.final_score}
                         onChange={e => setFinalForm({ ...finalForm, final_score: e.target.value })} />
                     </div>
-                    <div className="form-group" style={{ flex: 1 }}>
+                    <div className="form-group">
                       <label>Recommendation</label>
                       <select className="form-control" value={finalForm.final_recommendation}
                         onChange={e => setFinalForm({ ...finalForm, final_recommendation: e.target.value })}>
@@ -415,25 +415,25 @@ const CandidateDetailPage: React.FC = () => {
           <div className="card">
             <div className="card-header"><h2>Create New Offer</h2></div>
             <div className="card-body">
-              <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
+              <div className="flex-form-row">
+                <div className="form-group">
                   <label>Annual Salary *</label>
                   <input type="number" className="form-control" value={offerForm.salary}
                     onChange={e => setOfferForm({ ...offerForm, salary: e.target.value })} placeholder="120000" />
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-group">
                   <label>Signing Bonus</label>
                   <input type="number" className="form-control" value={offerForm.signing_bonus}
                     onChange={e => setOfferForm({ ...offerForm, signing_bonus: e.target.value })} placeholder="10000" />
                 </div>
               </div>
-              <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
+              <div className="flex-form-row">
+                <div className="form-group">
                   <label>Start Date</label>
                   <input type="date" className="form-control" value={offerForm.start_date}
                     onChange={e => setOfferForm({ ...offerForm, start_date: e.target.value })} />
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-group">
                   <label>Employment Type</label>
                   <select className="form-control" value={offerForm.employment_type}
                     onChange={e => setOfferForm({ ...offerForm, employment_type: e.target.value })}>
@@ -513,9 +513,9 @@ const CandidateDetailPage: React.FC = () => {
 };
 
 const InfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div style={{ display: 'flex', padding: '0.5rem 0', borderBottom: '1px solid var(--gray-100)' }}>
-    <span style={{ width: 120, fontSize: '0.8rem', color: 'var(--gray-500)' }}>{label}</span>
-    <span style={{ fontSize: '0.875rem' }}>{value || '-'}</span>
+  <div className="info-row">
+    <span className="info-row-label">{label}</span>
+    <span className="info-row-value">{value || '-'}</span>
   </div>
 );
 

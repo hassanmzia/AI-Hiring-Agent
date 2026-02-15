@@ -56,8 +56,8 @@ services:
       - DJANGO_SECRET_KEY=change-me-in-production-abc123
       - DJANGO_DEBUG=True
       - DJANGO_ALLOWED_HOSTS=*
-      - CORS_ALLOWED_ORIGINS=http://localhost:3047,http://localhost:3000,http://127.0.0.1:3047,http://172.168.1.95:3047
-      - CSRF_TRUSTED_ORIGINS=http://localhost:3047,http://localhost:3000,http://127.0.0.1:3047,http://localhost:8046,http://172.168.1.95:3047,http://172.168.1.95:8046
+      - CORS_ALLOWED_ORIGINS=http://localhost:3047,http://localhost:3000,http://127.0.0.1:3047,http://172.168.1.95:3047,https://demo.eminencetechsolutions.com:3047,https://108.48.39.238:3047
+      - CSRF_TRUSTED_ORIGINS=http://localhost:3047,http://localhost:3000,http://127.0.0.1:3047,http://localhost:8046,http://172.168.1.95:3047,http://172.168.1.95:8046,https://demo.eminencetechsolutions.com:3047,https://108.48.39.238:3047
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_API_BASE=${OPENAI_API_BASE:-https://api.openai.com/v1}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
@@ -187,12 +187,26 @@ services:
       dockerfile: Dockerfile
     container_name: fairhire-frontend
     restart: unless-stopped
-    ports:
-      - "3047:3000"
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
     depends_on:
+      - backend
+    networks:
+      - fairhire-net
+
+  # ─── Nginx (HTTPS / SSL termination) ──────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: fairhire-nginx
+    restart: unless-stopped
+    ports:
+      - "3047:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
       - backend
     networks:
       - fairhire-net

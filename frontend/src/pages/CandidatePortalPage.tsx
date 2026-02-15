@@ -81,7 +81,7 @@ const CandidatePortalPage: React.FC = () => {
       {msg && <div style={{ padding: '0.75rem', background: '#f0fdf4', color: 'var(--success)', borderRadius: 'var(--radius)', marginBottom: '1rem', fontSize: '0.85rem' }}>{msg}</div>}
       {error && <div style={{ padding: '0.75rem', background: '#fef2f2', color: 'var(--danger)', borderRadius: 'var(--radius)', marginBottom: '1rem', fontSize: '0.85rem' }}>{error}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="grid-2">
         {/* Personal Info */}
         <div className="card">
           <div className="card-header">
@@ -91,12 +91,12 @@ const CandidatePortalPage: React.FC = () => {
           <div className="card-body">
             {editMode ? (
               <>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
+                <div className="flex-form-row">
+                  <div className="form-group">
                     <label>First Name</label>
                     <input className="form-control" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
                   </div>
-                  <div className="form-group" style={{ flex: 1 }}>
+                  <div className="form-group">
                     <label>Last Name</label>
                     <input className="form-control" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
                   </div>
@@ -206,9 +206,9 @@ const CandidatePortalPage: React.FC = () => {
 };
 
 const InfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div style={{ display: 'flex', padding: '0.5rem 0', borderBottom: '1px solid var(--gray-100)' }}>
-    <span style={{ width: 110, fontSize: '0.8rem', color: 'var(--gray-500)' }}>{label}</span>
-    <span style={{ fontSize: '0.875rem' }}>{value || '-'}</span>
+  <div className="info-row">
+    <span className="info-row-label">{label}</span>
+    <span className="info-row-value">{value || '-'}</span>
   </div>
 );
 

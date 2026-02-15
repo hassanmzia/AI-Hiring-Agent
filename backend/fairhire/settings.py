@@ -109,9 +109,10 @@ CORS_ALLOW_HEADERS = [
 ]
 # Also allow any origin on port 3047/3000 for dev (regex-based)
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://localhost:\d+$",
-    r"^http://127\.0\.0\.1:\d+$",
-    r"^http://\d+\.\d+\.\d+\.\d+:(3047|3000)$",
+    r"^https?://localhost:\d+$",
+    r"^https?://127\.0\.0\.1:\d+$",
+    r"^https?://\d+\.\d+\.\d+\.\d+:(3047|3000)$",
+    r"^https://demo\.eminencetechsolutions\.com:\d+$",
 ]
 
 # ─── Session / CSRF ──────────────────────────────────────────
@@ -123,6 +124,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 CSRF_COOKIE_HTTPONLY = False  # JS needs to read it
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_USE_SESSIONS = False
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
     "http://localhost:3047,http://localhost:3000,http://localhost:8046,http://172.168.1.95:3047,http://172.168.1.95:8046"

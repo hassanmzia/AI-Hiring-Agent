@@ -28,6 +28,11 @@ frontend/build/
 # Docker
 *.log
 
+# SSL certificates (keep .gitkeep only)
+ssl/*.pem
+ssl/*.key
+ssl/*.crt
+
 # IDE
 .idea/
 .vscode/
