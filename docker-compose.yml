@@ -187,6 +187,14 @@ services:
       dockerfile: Dockerfile
     container_name: fairhire-frontend
     restart: unless-stopped
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_PORT=0
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
