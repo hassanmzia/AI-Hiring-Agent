@@ -13,7 +13,7 @@ const ScoreBar: React.FC<ScoreBarProps> = ({ score, maxScore = 1, showLabel = tr
   const color = pct >= 70 ? 'var(--success)' : pct >= 40 ? 'var(--warning)' : 'var(--danger)';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 120 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
       <div className="score-bar" style={{ flex: 1 }}>
         <div className="score-bar-fill" style={{ width: `${pct}%`, background: color }} />
       </div>

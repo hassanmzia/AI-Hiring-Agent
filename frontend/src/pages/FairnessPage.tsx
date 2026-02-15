@@ -47,7 +47,7 @@ const FairnessPage: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="grid-2">
         <div className="card">
           <div className="card-header"><h2>Probe Statistics by Type</h2></div>
           <div className="card-body">

@@ -116,7 +116,7 @@ const InterviewsPage: React.FC = () => {
         <h1>Interview Management</h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: detail ? '1fr 1.2fr' : '1fr', gap: '1.5rem' }}>
+      <div className={`grid-split ${detail ? 'has-detail' : ''}`}>
         {/* Interview List */}
         <div className="card">
           <div className="card-header"><h2>All Interviews ({interviews.length})</h2></div>
@@ -175,7 +175,7 @@ const InterviewsPage: React.FC = () => {
                     <span className={`badge ${statusColor(detail.status)}`}>{detail.status}</span>
                   </div>
                   <div className="card-body">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem' }}>
+                    <div className="grid-detail-2">
                       <div><strong>Job:</strong> {detail.job_title}</div>
                       <div><strong>Duration:</strong> {detail.duration_minutes} min</div>
                       <div><strong>Location:</strong> {detail.location || 'TBD'}</div>
@@ -273,7 +273,7 @@ const InterviewsPage: React.FC = () => {
                           </div>
                           {fb.submitted ? (
                             <div style={{ fontSize: '0.85rem' }}>
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                              <div className="grid-3" style={{ marginBottom: '0.5rem' }}>
                                 {[['Technical', fb.technical_score], ['Communication', fb.communication_score],
                                   ['Problem Solving', fb.problem_solving_score], ['Culture Fit', fb.culture_fit_score],
                                   ['Leadership', fb.leadership_score], ['Overall', fb.overall_score]].map(([label, val]) => (
@@ -286,7 +286,7 @@ const InterviewsPage: React.FC = () => {
                             </div>
                           ) : (
                             <div>
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                              <div className="grid-3" style={{ marginBottom: '0.5rem' }}>
                                 {['technical_score', 'communication_score', 'problem_solving_score',
                                   'culture_fit_score', 'leadership_score', 'overall_score'].map(field => (
                                   <div key={field} className="form-group" style={{ marginBottom: 0 }}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import './index.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -18,8 +18,52 @@ import ProfilePage from './pages/ProfilePage';
 import UsersPage from './pages/UsersPage';
 import CandidatePortalPage from './pages/CandidatePortalPage';
 
+const SidebarNav: React.FC<{ closeSidebar: () => void }> = ({ closeSidebar }) => {
+  const { isCandidate, isAdmin } = useAuth();
+
+  return (
+    <nav className="sidebar-nav">
+      {isCandidate ? (
+        <>
+          <div className="sidebar-section">My Portal</div>
+          <NavLink to="/" end onClick={closeSidebar}>My Application</NavLink>
+          <NavLink to="/profile" onClick={closeSidebar}>My Profile</NavLink>
+        </>
+      ) : (
+        <>
+          <div className="sidebar-section">Overview</div>
+          <NavLink to="/" end onClick={closeSidebar}>Dashboard</NavLink>
+          <NavLink to="/activity" onClick={closeSidebar}>Activity Feed</NavLink>
+
+          <div className="sidebar-section">Hiring Pipeline</div>
+          <NavLink to="/jobs" onClick={closeSidebar}>Job Positions</NavLink>
+          <NavLink to="/candidates" onClick={closeSidebar}>Candidates</NavLink>
+          <NavLink to="/interviews" onClick={closeSidebar}>Interviews</NavLink>
+          <NavLink to="/offers" onClick={closeSidebar}>Offers</NavLink>
+
+          <div className="sidebar-section">Responsible AI</div>
+          <NavLink to="/fairness" onClick={closeSidebar}>Fairness & Bias</NavLink>
+
+          {isAdmin && (
+            <>
+              <div className="sidebar-section">Administration</div>
+              <NavLink to="/users" onClick={closeSidebar}>User Management</NavLink>
+            </>
+          )}
+
+          <div className="sidebar-section">Account</div>
+          <NavLink to="/profile" onClick={closeSidebar}>My Profile</NavLink>
+        </>
+      )}
+    </nav>
+  );
+};
+
 const AppContent: React.FC = () => {
   const { user, loading, logout, isCandidate, isAdmin } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   if (loading) {
     return (
@@ -41,45 +85,27 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="app-layout">
-      <aside className="sidebar">
+      {/* Mobile hamburger button */}
+      <button
+        className="mobile-menu-toggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle menu"
+      >
+        {sidebarOpen ? '\u2715' : '\u2630'}
+      </button>
+
+      {/* Overlay for closing sidebar on mobile */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+        onClick={closeSidebar}
+      />
+
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand">
           <h1>FAIRHire</h1>
           <p>AI-Powered Responsible Hiring</p>
         </div>
-        <nav className="sidebar-nav">
-          {isCandidate ? (
-            <>
-              <div className="sidebar-section">My Portal</div>
-              <NavLink to="/" end>My Application</NavLink>
-              <NavLink to="/profile">My Profile</NavLink>
-            </>
-          ) : (
-            <>
-              <div className="sidebar-section">Overview</div>
-              <NavLink to="/" end>Dashboard</NavLink>
-              <NavLink to="/activity">Activity Feed</NavLink>
-
-              <div className="sidebar-section">Hiring Pipeline</div>
-              <NavLink to="/jobs">Job Positions</NavLink>
-              <NavLink to="/candidates">Candidates</NavLink>
-              <NavLink to="/interviews">Interviews</NavLink>
-              <NavLink to="/offers">Offers</NavLink>
-
-              <div className="sidebar-section">Responsible AI</div>
-              <NavLink to="/fairness">Fairness & Bias</NavLink>
-
-              {isAdmin && (
-                <>
-                  <div className="sidebar-section">Administration</div>
-                  <NavLink to="/users">User Management</NavLink>
-                </>
-              )}
-
-              <div className="sidebar-section">Account</div>
-              <NavLink to="/profile">My Profile</NavLink>
-            </>
-          )}
-        </nav>
+        <SidebarNav closeSidebar={closeSidebar} />
 
         {/* User info at bottom */}
         <div style={{
@@ -90,14 +116,14 @@ const AppContent: React.FC = () => {
             <div style={{
               width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.75rem', color: '#fff', overflow: 'hidden',
+              fontSize: '0.75rem', color: '#fff', overflow: 'hidden', flexShrink: 0,
             }}>
               {user.profile_picture_url ? (
                 <img src={user.profile_picture_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : user.full_name.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <div style={{ color: '#fff', fontWeight: 500 }}>{user.full_name}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: '#fff', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.full_name}</div>
               <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem' }}>{user.role_display}</div>
             </div>
           </div>

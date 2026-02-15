@@ -81,7 +81,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+      <div className="grid-2-1">
         <div className="card">
           <div className="card-header">
             <h2>Pipeline Distribution</h2>
@@ -93,7 +93,7 @@ const Dashboard: React.FC = () => {
               const pct = stats.total_candidates ? (count / stats.total_candidates) * 100 : 0;
               return (
                 <div key={stage} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  <span style={{ width: 100, fontSize: '0.8rem', color: 'var(--gray-600)' }}>{stage.replace(/_/g, ' ')}</span>
+                  <span style={{ minWidth: 80, maxWidth: 100, fontSize: '0.8rem', color: 'var(--gray-600)' }}>{stage.replace(/_/g, ' ')}</span>
                   <div style={{ flex: 1, height: 20, background: 'var(--gray-100)', borderRadius: 4 }}>
                     <div style={{
                       height: '100%', borderRadius: 4,

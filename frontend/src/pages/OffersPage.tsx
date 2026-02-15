@@ -108,7 +108,7 @@ const OffersPage: React.FC = () => {
         <h1>Offer Management</h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: detail ? '1fr 1.2fr' : '1fr', gap: '1.5rem' }}>
+      <div className={`grid-split ${detail ? 'has-detail' : ''}`}>
         <div className="card">
           <div className="card-header"><h2>All Offers ({offers.length})</h2></div>
           <div className="table-container">
@@ -164,7 +164,7 @@ const OffersPage: React.FC = () => {
                     <span className={`badge ${statusColor(detail.status)}`}>{detail.status.replace(/_/g, ' ')}</span>
                   </div>
                   <div className="card-body">
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem' }}>
+                    <div className="grid-detail-2">
                       <div><strong>Position:</strong> {detail.job_title}</div>
                       <div><strong>Salary:</strong> ${Number(detail.salary).toLocaleString()} {detail.salary_currency}/{detail.salary_period}</div>
                       <div><strong>Type:</strong> {detail.employment_type.replace(/_/g, ' ')}</div>

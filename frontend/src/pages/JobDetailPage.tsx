@@ -73,7 +73,7 @@ const JobDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+      <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
         <div className="card">
           <div className="card-header"><h2>Description</h2></div>
           <div className="card-body"><p>{job.description}</p></div>
