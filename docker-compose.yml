@@ -191,6 +191,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
       - WDS_SOCKET_PORT=0
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
     ulimits:
       nofile:
         soft: 65536
